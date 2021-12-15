@@ -498,6 +498,11 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.capture != nil && self.capture.running == true {
             prepared = true
         }
+        
+        var previewing = false
+//        if(captureVideoPreviewLayer != nil){
+//            previewing = captureVideoPreviewLayer!.connection.isEnabled
+//        }
 
         var showing = false
         if(self.webView!.backgroundColor == UIColor.clear){
@@ -516,10 +521,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
 
-        var canOpenSettings = false
-        if #available(iOS 8.0, *) {
-            canOpenSettings = true
-        }
+        var canOpenSettings = true
 
         var canChangeCamera = false;
         if(backCamera != -1 && frontCamera != -1){
@@ -532,6 +534,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             "restricted": boolToNumberString(bool: restricted),
             "prepared": boolToNumberString(bool: prepared),
             "scanning": boolToNumberString(bool: self.scanning),
+            "previewing": boolToNumberString(bool: previewing),
             "showing": boolToNumberString(bool: showing),
             "lightEnabled": boolToNumberString(bool: lightEnabled),
             "canOpenSettings": boolToNumberString(bool: canOpenSettings),
