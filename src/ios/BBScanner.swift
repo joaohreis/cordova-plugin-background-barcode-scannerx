@@ -377,14 +377,17 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.prepScanner(command: command) {
             scanning = false
             
-            self.makeOpaque()
-            self.cameraView.isHidden = true
-            self.capture.stop()
-
-            if(nextScanningCommand != nil){
-                self.sendErrorCode(command: nextScanningCommand!, error: ScannerError.scan_canceled)
-            }
-            self.getStatus(command)
+            self.backgroundThread(delay: 0, background: {
+                self.capture.stop()
+            }, completion: {
+                self.makeOpaque()
+                self.cameraView.isHidden = true
+                
+                if(self.nextScanningCommand != nil){
+                    self.sendErrorCode(command: self.nextScanningCommand!, error: ScannerError.scan_canceled)
+                }
+                self.getStatus(command)
+            });
         }
     }
 
@@ -454,13 +457,16 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         }
 
         if self.capture != nil {
-            self.capture.stop()
+            self.backgroundThread(delay: 0, background: {
+                self.capture.stop()
+            }, completion: {
                 self.cameraView.removePreviewLayer()
                 self.cameraView.removeFromSuperview()
                 self.cameraView = nil
                 self.capture = nil
                 self.currentCamera = 0
                 self.getStatus(command)
+            })
         } else {
             self.getStatus(command)
         }
