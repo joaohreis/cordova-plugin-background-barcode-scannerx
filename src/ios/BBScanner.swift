@@ -396,7 +396,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.prepScanner(command: command) {
             let image = UIImage(cgImage: self.capture.lastScannedImage)
             let resizedImage = image.resizeImage(640, opaque: true)
-            let data = UIImagePNGRepresentation(resizedImage)
+            let data = resizedImage.pngData()
             let base64 = data?.base64EncodedString()
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
             commandDelegate!.send(pluginResult, callbackId:command.callbackId)
@@ -551,7 +551,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     // Open native settings
     @objc
     func openSettings(_ command: CDVInvokedUrlCommand) {
-        guard let settingsUrl = URL(string: UIApplicationOpenSettingsURLString) else {
+        guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
             return
         }
         if UIApplication.shared.canOpenURL(settingsUrl) {
@@ -565,7 +565,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 }
 
 extension UIImage {
-    func resizeImage(_ dimension: CGFloat, opaque: Bool, contentMode: UIViewContentMode = .scaleAspectFit) -> UIImage {
+    func resizeImage(_ dimension: CGFloat, opaque: Bool, contentMode: UIView.ContentMode = .scaleAspectFit) -> UIImage {
         var width: CGFloat
         var height: CGFloat
         var newImage: UIImage
