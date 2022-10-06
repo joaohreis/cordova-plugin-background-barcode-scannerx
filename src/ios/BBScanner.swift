@@ -446,15 +446,15 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 
         let authorizationStatus = AVCaptureDevice.authorizationStatus(for: AVMediaType.video);
 
-        var authorized = (authorizationStatus == AVAuthorizationStatus.authorized)
+        let authorized = (authorizationStatus == AVAuthorizationStatus.authorized)
 
-        var denied = (authorizationStatus == AVAuthorizationStatus.denied)
+        let denied = (authorizationStatus == AVAuthorizationStatus.denied)
 
-        var restricted = (authorizationStatus == AVAuthorizationStatus.restricted)
+        let restricted = (authorizationStatus == AVAuthorizationStatus.restricted)
 
-        var prepared = (self.capture != nil && self.capture.running == true)
+        let prepared = (self.capture != nil && self.capture.running == true)
 
-        var showing = (self.webView!.backgroundColor == UIColor.clear)
+        let showing = (self.webView!.backgroundColor == UIColor.clear)
 
         var lightEnabled = false
         var canEnableLight = false
@@ -471,7 +471,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         let canOpenSettings = "1"
         let previewing = "0"
 
-        var canChangeCamera =  (backCamera != -1 && frontCamera != -1)
+        let canChangeCamera =  (backCamera != -1 && frontCamera != -1)
 
         let status = [
             "authorized": boolToNumberString(bool: authorized),
