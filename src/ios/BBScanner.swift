@@ -551,7 +551,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     // Open native settings
     @objc
     func openSettings(_ command: CDVInvokedUrlCommand) {
-        guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+        /*guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
             return
         }
         if UIApplication.shared.canOpenURL(settingsUrl) {
@@ -560,7 +560,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             })
         } else {
             self.sendErrorCode(command: command, error: ScannerError.open_settings_unavailable)
-        }
+        }*/
     }
 }
 
