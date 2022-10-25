@@ -122,30 +122,52 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             return false
         }
 
-        do {
+//        if ( self.capture != nil ){
+//            return true;
+//        }
 
-            if ( self.capture != nil ){
-                return true;
+//        self.initSubView()
+//
+//        self.capture = ZXCapture.init()
+//        self.capture.delegate  = self
+//        self.capture.camera    = self.capture.back()
+//        self.backCamera = self.capture.back()
+//        self.frontCamera = self.capture.front()
+//        self.capture.focusMode = AVCaptureDevice.FocusMode.continuousAutoFocus
+//
+//        cameraView.backgroundColor = UIColor.white
+//        self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
+//        cameraView.addPreviewLayer(self.capture)
+
+        return true
+    }
+    
+    func initScanner(completion: (() -> Void)? = nil) {
+        if ( self.capture != nil ){
+            if(completion != nil){
+                completion!()
             }
-
-            self.initSubView()
-
+            return
+        }
+        
+        self.initSubView()
+        
+        self.backgroundThread(delay: 0, background: {
             self.capture = ZXCapture.init()
             self.capture.delegate  = self
             self.capture.camera    = self.capture.back()
             self.backCamera = self.capture.back()
             self.frontCamera = self.capture.front()
             self.capture.focusMode = AVCaptureDevice.FocusMode.continuousAutoFocus
-
-            cameraView.backgroundColor = UIColor.white
-            self.webView!.superview!.insertSubview(cameraView, belowSubview: self.webView!)
-            cameraView.addPreviewLayer(self.capture)
-
-            return true
-        } catch {
-            self.sendErrorCode(command: command, error: ScannerError.unexpected_error)
-        }
-        return false
+        }, completion: {
+            self.cameraView.backgroundColor = UIColor.white
+            self.webView!.superview!.insertSubview(self.cameraView, belowSubview: self.webView!)
+            self.cameraView.addPreviewLayer(self.capture)
+            
+            if(completion != nil){
+                completion!()
+            }
+        })
     }
 
     func makeOpaque(){
@@ -273,24 +295,14 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 
     // Create a background thread task
     func backgroundThread(delay: Double = 0.0, background: (() -> Void)? = nil, completion: (() -> Void)? = nil) {
-        if #available(iOS 8.0, *) {
-            DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async {
-                if (background != nil) {
-                    background!()
-                }
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + delay * Double(NSEC_PER_SEC)) {
-                    if(completion != nil){
-                        completion!()
-                    }
-                }
-            }
-        } else {
-            // Fallback for iOS < 8.0
-            if(background != nil){
+        DispatchQueue.global(qos: DispatchQoS.QoSClass.userInitiated).async {
+            if (background != nil) {
                 background!()
             }
-            if(completion != nil){
-                completion!()
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + delay * Double(NSEC_PER_SEC)) {
+                if(completion != nil){
+                    completion!()
+                }
             }
         }
     }
@@ -307,9 +319,9 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
                 // attempt to prepScanner only after the request returns
                 self.backgroundThread(delay: 0, completion: {
                     if(self.prepScanner(command: command)){
-                        self.makeOpaque()
-                        self.cameraView.isHidden = true
-                        self.capture.stop()
+//                        self.makeOpaque()
+//                        self.cameraView.isHidden = true
+//                        self.capture.stop()
                         self.getStatus(command)
                     }
                 })
@@ -324,23 +336,25 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     @objc
     func scan(_ command: CDVInvokedUrlCommand){
         if self.prepScanner(command: command) {
-            nextScanningCommand = command
-            scanning = true
+            self.initScanner(completion: {
+                self.nextScanningCommand = command
+                self.scanning = true
 
-            if let options = command.argument(at: 0) as? Dictionary<String, Any> {
-                if let multipleScan = options["multipleScan"] as? Bool {
-                    self.multipleScan = multipleScan
-                } else {
-                    self.multipleScan = false
+                if let options = command.argument(at: 0) as? Dictionary<String, Any> {
+                    if let multipleScan = options["multipleScan"] as? Bool {
+                        self.multipleScan = multipleScan
+                    } else {
+                        self.multipleScan = false
+                    }
                 }
-            }
 
-            self.webView?.isOpaque        = false
-            self.webView?.backgroundColor = UIColor.clear
-            self.cameraView.isHidden      = false
-            if !self.capture.running {
-                self.capture.start()
-            }
+                self.webView?.isOpaque        = false
+                self.webView?.backgroundColor = UIColor.clear
+                self.cameraView.isHidden      = false
+                if !self.capture.running {
+                    self.capture.start()
+                }
+            });
         }
     }
 
@@ -362,14 +376,18 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     func stop(_ command: CDVInvokedUrlCommand){
         if self.prepScanner(command: command) {
             scanning = false
-            self.makeOpaque()
-            self.cameraView.isHidden = true
-            self.capture.stop()
-
-            if(nextScanningCommand != nil){
-                self.sendErrorCode(command: nextScanningCommand!, error: ScannerError.scan_canceled)
-            }
-            self.getStatus(command)
+            
+            self.backgroundThread(delay: 0, background: {
+                self.capture.stop()
+            }, completion: {
+                self.makeOpaque()
+                self.cameraView.isHidden = true
+                
+                if(self.nextScanningCommand != nil){
+                    self.sendErrorCode(command: self.nextScanningCommand!, error: ScannerError.scan_canceled)
+                }
+                self.getStatus(command)
+            });
         }
     }
 
@@ -378,7 +396,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.prepScanner(command: command) {
             let image = UIImage(cgImage: self.capture.lastScannedImage)
             let resizedImage = image.resizeImage(640, opaque: true)
-            let data = UIImagePNGRepresentation(resizedImage)
+            let data = resizedImage.pngData()
             let base64 = data?.base64EncodedString()
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
             commandDelegate!.send(pluginResult, callbackId:command.callbackId)
@@ -439,13 +457,16 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         }
 
         if self.capture != nil {
-            self.capture.stop()
+            self.backgroundThread(delay: 0, background: {
+                self.capture.stop()
+            }, completion: {
                 self.cameraView.removePreviewLayer()
                 self.cameraView.removeFromSuperview()
                 self.cameraView = nil
                 self.capture = nil
                 self.currentCamera = 0
                 self.getStatus(command)
+            })
         } else {
             self.getStatus(command)
         }
@@ -477,7 +498,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.capture != nil && self.capture.running == true {
             prepared = true
         }
-
+        
         var previewing = false
 //        if(captureVideoPreviewLayer != nil){
 //            previewing = captureVideoPreviewLayer!.connection.isEnabled
@@ -500,10 +521,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
 
-        var canOpenSettings = false
-        if #available(iOS 8.0, *) {
-            canOpenSettings = true
-        }
+        var canOpenSettings = true
 
         var canChangeCamera = false;
         if(backCamera != -1 && frontCamera != -1){
@@ -533,31 +551,21 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     // Open native settings
     @objc
     func openSettings(_ command: CDVInvokedUrlCommand) {
-        if #available(iOS 10.0, *) {
-            guard let settingsUrl = URL(string: UIApplicationOpenSettingsURLString) else {
-                return
-            }
-            if UIApplication.shared.canOpenURL(settingsUrl) {
-                UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
-                    self.getStatus(command)
-                })
-            } else {
-                self.sendErrorCode(command: command, error: ScannerError.open_settings_unavailable)
-            }
-        } else {
-            // pre iOS 10.0
-            if #available(iOS 8.0, *) {
-                UIApplication.shared.openURL(NSURL(string: UIApplicationOpenSettingsURLString)! as URL)
+        guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+        if UIApplication.shared.canOpenURL(settingsUrl) {
+            UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
                 self.getStatus(command)
-            } else {
-                self.sendErrorCode(command: command, error: ScannerError.open_settings_unavailable)
-            }
+            })
+        } else {
+            self.sendErrorCode(command: command, error: ScannerError.open_settings_unavailable)
         }
     }
 }
 
 extension UIImage {
-    func resizeImage(_ dimension: CGFloat, opaque: Bool, contentMode: UIViewContentMode = .scaleAspectFit) -> UIImage {
+    func resizeImage(_ dimension: CGFloat, opaque: Bool, contentMode: UIView.ContentMode = .scaleAspectFit) -> UIImage {
         var width: CGFloat
         var height: CGFloat
         var newImage: UIImage

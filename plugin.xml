@@ -6,7 +6,9 @@
   <name>BBScanner</name>
 
   <engines>
-    <engine name="cordova" version=">=3.4.0"/>
+    <engine name="cordova" version=">=10.0.0"/>
+    <engine name="cordova-android" version=">=9.0.0"/>
+    <engine name="cordova-ios" version=">=6.0.0"/>
   </engines>
 
   <js-module src="www/background-barcode-scanner.js" name="BBScanner">
@@ -27,7 +29,6 @@
     </config-file>
 	-->
     <source-file src="src/android/BBScanner.java" target-dir="src/info/belluco/cordova/bbscanner"/>
-    <dependency id="cordova-plugin-compat" version="^1.0.0" />
     <framework src="src/android/bbscanner.gradle" custom="true" type="gradleReference"/>
   </platform>
 
@@ -41,7 +42,7 @@
 
     <podspec>
       <config>
-        <source url="https://github.com/CocoaPods/Specs.git"/>
+        <source url="https://cdn.cocoapods.org/"/>
       </config>
       <pods use-frameworks="true">
         <pod name="ZXingObjC" />
