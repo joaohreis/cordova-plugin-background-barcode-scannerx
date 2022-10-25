@@ -396,7 +396,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.prepScanner(command: command) {
             let image = UIImage(cgImage: self.capture.lastScannedImage)
             let resizedImage = image.resizeImage(640, opaque: true)
-            let data = resizedImage.pngData()
+            let data = UIImagePNGRepresentation(resizedImage)
             let base64 = data?.base64EncodedString()
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
             commandDelegate!.send(pluginResult, callbackId:command.callbackId)
@@ -521,7 +521,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
 
-        var canOpenSettings = true
+        var canOpenSettings = false
 
         var canChangeCamera = false;
         if(backCamera != -1 && frontCamera != -1){
@@ -534,7 +534,6 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             "restricted": boolToNumberString(bool: restricted),
             "prepared": boolToNumberString(bool: prepared),
             "scanning": boolToNumberString(bool: self.scanning),
-            "previewing": boolToNumberString(bool: previewing),
             "showing": boolToNumberString(bool: showing),
             "lightEnabled": boolToNumberString(bool: lightEnabled),
             "canOpenSettings": boolToNumberString(bool: canOpenSettings),
