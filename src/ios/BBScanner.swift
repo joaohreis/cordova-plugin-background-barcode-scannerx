@@ -19,28 +19,28 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             var scanRectRotation:CGFloat;
             var captureRotation:Double;
 
-            //switch (orientation) {
-            //    case UIInterfaceOrientation.portrait:
-            //        captureRotation = 0;
-            //        scanRectRotation = 90;
-            //        break;
-            //    case UIInterfaceOrientation.landscapeLeft:
+            switch (orientation) {
+                case UIInterfaceOrientation.portrait:
+                    captureRotation = 0;
+                    scanRectRotation = 90;
+                    break;
+                case UIInterfaceOrientation.landscapeLeft:
                     captureRotation = 90;
                     scanRectRotation = 180;
-            //        break;
-            //    case UIInterfaceOrientation.landscapeRight:
-            //        captureRotation = 270;
-            //        scanRectRotation = 0;
-            //        break;
-            //    case UIInterfaceOrientation.portraitUpsideDown:
-            //        captureRotation = 180;
-            //        scanRectRotation = 270;
-            //        break;
-            //    default:
-            //        captureRotation = 0;
-            //        scanRectRotation = 90;
-            //        break;
-            //}
+                    break;
+                case UIInterfaceOrientation.landscapeRight:
+                    captureRotation = 270;
+                    scanRectRotation = 0;
+                    break;
+                case UIInterfaceOrientation.portraitUpsideDown:
+                    captureRotation = 180;
+                    scanRectRotation = 270;
+                    break;
+                default:
+                    captureRotation = 0;
+                    scanRectRotation = 90;
+                    break;
+            }
 
             capture.transform = CGAffineTransform( rotationAngle: CGFloat((captureRotation / 180 * .pi)) )
             capture.rotation  = scanRectRotation
