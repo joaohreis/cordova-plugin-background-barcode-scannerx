@@ -468,7 +468,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
 
-        let canOpenSettings = "1"
+        let canOpenSettings = "0"
         let previewing = "0"
 
         let canChangeCamera =  (backCamera != -1 && frontCamera != -1)
