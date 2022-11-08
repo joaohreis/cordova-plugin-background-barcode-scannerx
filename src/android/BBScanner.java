@@ -891,7 +891,10 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
             this.cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ((ViewGroup) mBarcodeView.getParent()).removeView(mBarcodeView);
+                    ViewGroup vg = (ViewGroup) (mBarcodeView.getParent());
+                    if (vg != null) {
+                        vg.removeView(mBarcodeView);
+                    }
                     cameraPreviewing = false;
                 }
             });
