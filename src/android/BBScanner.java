@@ -376,6 +376,8 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
     private boolean canChangeCamera() {
         int numCameras= Camera.getNumberOfCameras();
         for(int i=0;i<numCameras;i++){
+            //Know issue
+            //Fail to get camera info on POCO veux device
             Camera.CameraInfo info = new Camera.CameraInfo();
             Camera.getCameraInfo(i, info);
             if(info.CAMERA_FACING_FRONT == info.facing){
@@ -585,18 +587,19 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
         if(barcodeResult.getText() != null) {
             // Log.d("BBScan",  "====== Ooook: "+barcodeResult.getText());
             PluginResult result = new PluginResult(PluginResult.Status.OK, barcodeResult.getText());
-            CallbackContext callback = this.nextScanCallback;
+            CallbackContext callback = this.nextScanCallback;      
 
             if (this.multipleScan) {
                 result.setKeepCallback(true);
+                callback.sendPluginResult(result);
             } else {
                 scanning = false;
                 mBarcodeView.stopDecoding();
+                callback.sendPluginResult(result);
                 this.nextScanCallback = null;
                 this.scanType = null;
             }
 
-            callback.sendPluginResult(result);
         }
         else {
             scan(this.nextScanCallback);
@@ -891,7 +894,10 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
             this.cordova.getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    ((ViewGroup) mBarcodeView.getParent()).removeView(mBarcodeView);
+                    ViewGroup parent = (ViewGroup) mBarcodeView.getParent();
+                    if (parent != null) {
+                        parent.removeView(mBarcodeView);
+                    }
                     cameraPreviewing = false;
                 }
             });
