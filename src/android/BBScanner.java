@@ -586,16 +586,15 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
 
         if(barcodeResult.getText() != null) {
             // Log.d("BBScan",  "====== Ooook: "+barcodeResult.getText());
-            PluginResult result = new PluginResult(PluginResult.Status.OK, barcodeResult.getText());
-            CallbackContext callback = this.nextScanCallback;      
+            PluginResult result = new PluginResult(PluginResult.Status.OK, barcodeResult.getText());     
 
             if (this.multipleScan) {
                 result.setKeepCallback(true);
-                callback.sendPluginResult(result);
+                this.nextScanCallback.sendPluginResult(result);
             } else {
                 scanning = false;
                 mBarcodeView.stopDecoding();
-                callback.sendPluginResult(result);
+                this.nextScanCallback.sendPluginResult(result);
                 this.nextScanCallback = null;
                 this.scanType = null;
             }
