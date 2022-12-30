@@ -146,7 +146,7 @@ function successCallback(callback) {
 	};
 }
 
-// Done callbakc
+// Done callback
 function doneCallback(callback, clear) {
 	if ( !callback || typeof callback !== 'function')
 		callback = function(){};
@@ -239,14 +239,14 @@ exports.snap = function(callback) {
 
 exports.pause = function(callback) {
 	if ( !callback || typeof callback !== 'function') {
-		throw new Error('No callback provided to snap method.');
+		throw new Error('No callback provided to pause method.');
 	}
 	exec(callback, null, 'BBScanner', 'pause', []);
 }
 
 exports.resume = function(callback) {
 	if ( !callback || typeof callback !== 'function') {
-		throw new Error('No callback provided to snap method.');
+		throw new Error('No callback provided to resume method.');
 	}
 	exec(callback, null, 'BBScanner', 'resume', []);
 }

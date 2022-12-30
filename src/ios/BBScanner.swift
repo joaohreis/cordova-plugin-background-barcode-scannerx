@@ -97,7 +97,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 
     func initSubView() {
         if self.cameraView == nil {
-            self.cameraView = CameraView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+            self.cameraView = CameraView(frame: CGRect(x: self.webView.frame.origin.x, y: self.webView.frame.origin.y, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
             self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight];
         }
     }

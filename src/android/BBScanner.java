@@ -572,11 +572,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
 
     @Override
     public void barcodeResult(BarcodeResult barcodeResult) {
-        if (!this.scanning) {
-            return;
-        }
-
-        if (this.nextScanCallback == null) {
+        if (!this.scanning || this.nextScanCallback == null) {
             return;
         }
 
@@ -593,9 +589,10 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
 
             if (this.multipleScan) {
                 result.setKeepCallback(true);
+                //Sometimes nextScanCallback throw NullPointer
                 this.nextScanCallback.sendPluginResult(result);
             } else {
-                scanning = false;
+                this.scanning = false;
                 mBarcodeView.stopDecoding();
                 this.nextScanCallback.sendPluginResult(result);
                 this.nextScanCallback = null;
@@ -622,7 +619,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                     }
                     else {
                         setupCamera(callbackContext);
-                        if (!scanning)
+                        if (!this.scanning)
                             getStatus(callbackContext);
                     }
                 }
