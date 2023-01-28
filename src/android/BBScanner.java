@@ -376,12 +376,12 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
     private boolean canChangeCamera() {
         int numCameras= Camera.getNumberOfCameras();
         for(int i=0;i<numCameras;i++){
-            //Know issue
-            //Fail to get camera info on POCO veux device
             Camera.CameraInfo info = new Camera.CameraInfo();
-            Camera.getCameraInfo(i, info);
-            if(info.CAMERA_FACING_FRONT == info.facing){
-                return true;
+            if(info != null){
+                Camera.getCameraInfo(i, info);
+                if(info.CAMERA_FACING_FRONT == info.facing){
+                    return true;
+                }
             }
         }
         return false;
