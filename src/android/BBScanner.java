@@ -11,7 +11,6 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +37,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -57,14 +57,35 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
      * on, false otherwise.
      */
     private Boolean lightOn = false;
+    /**
+     * This variable stores the state if the camera is currently showing
+     */
     private boolean showing = false;
+    /**
+     * This variable stores the state if the camera has been prepared for scanning
+     */
     private boolean prepared = false;
+    /**
+     * This variable stores an integer representing the currently selected camera (either the front or back camera)
+     * CAMERA_FACING_BACK by default
+     */
     private int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 33;
-    // Preview started or paused
+    /**
+     * This variable stores the camera preview state
+     */
     private boolean previewing = false;
+    /**
+     * This variable stores a BarcodeView object used to display the camera preview and scan barcodes
+     */
     private BarcodeView mBarcodeView;
+    /**
+     * This variable stores the state if the camera is currently in preview mode
+     */
     private boolean cameraPreviewing;
+    /**
+     * This variable stores the state if the camera is currently scanning
+     */
     private boolean scanning = false;
     private CallbackContext nextScanCallback;
     private boolean shouldScanAgain;
@@ -137,10 +158,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                     return true;
                 case "prepare":
                     cordova.getThreadPool().execute(() -> cordova.getActivity().runOnUiThread(() -> {
-                        try {
-                            currentCameraId = args.getInt(0);
-                        } catch (JSONException e) {
-                        }
+                        currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
                         prepare(callbackContext);
                     }));
                     return true;
@@ -184,7 +202,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
     private boolean hasFlash() {
         if (flashAvailable == null) {
             flashAvailable = false;
-            final PackageManager packageManager = cordova.getActivity().getPackageManager();
+            final PackageManager packageManager = this.cordova.getActivity().getPackageManager();
             for (final FeatureInfo feature : packageManager.getSystemAvailableFeatures()) {
                 if (PackageManager.FEATURE_CAMERA_FLASH.equalsIgnoreCase(feature.name)) {
                     flashAvailable = true;
@@ -260,60 +278,6 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
         }
     }
 
-    private String boolToNumberString(Boolean bool) {
-        return bool ? "1" : "0";
-    }
-
-    private BarcodeFormat getBarcodeFormatFromString(String format) {
-        BarcodeFormat aFormat = null;
-        switch (format) {
-            case "QR_CODE":
-                aFormat = BarcodeFormat.QR_CODE;
-                break;
-            case "UPC_E":
-                aFormat = BarcodeFormat.UPC_E;
-                break;
-            case "EAN_13":
-                aFormat = BarcodeFormat.EAN_13;
-                break;
-            case "EAN_8":
-                aFormat = BarcodeFormat.EAN_8;
-                break;
-            case "CODE_39":
-                aFormat = BarcodeFormat.CODE_39;
-                break;
-            case "CODE_93":
-                aFormat = BarcodeFormat.CODE_93;
-                break;
-            case "CODE_128":
-                aFormat = BarcodeFormat.CODE_128;
-                break;
-            case "PDF417":
-                aFormat = BarcodeFormat.PDF_417;
-                break;
-            case "ITF":
-                aFormat = BarcodeFormat.ITF;
-                break;
-            case "DATA_MATRIX":
-                aFormat = BarcodeFormat.DATA_MATRIX;
-                break;
-            case "CODABAR":
-                aFormat = BarcodeFormat.CODABAR;
-                break;
-            case "RSS_14":
-                aFormat = BarcodeFormat.RSS_14;
-                break;
-            case "RSS_EXPANDED":
-                aFormat = BarcodeFormat.RSS_EXPANDED;
-                break;
-        }
-        return aFormat;
-    }
-
-    public int getCurrentCameraId() {
-        return this.currentCameraId;
-    }
-
     private boolean canChangeCamera() {
         int numCameras = Camera.getNumberOfCameras();
         for (int i = 0; i < numCameras; i++) {
@@ -353,44 +317,41 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
 
     public void onRequestPermissionResult(int requestCode, String[] permissions, int[] grantResults) {
         oneTime = false;
-        if (requestCode == 33) {
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
             // for each permission check if the user granted/denied them
             // you may want to group the rationale in a single dialog,
             // this is just an example
             for (int i = 0; i < permissions.length; i++) {
                 String permission = permissions[i];
+
+                authorized = false;
+                denied = false;
+                restricted = false;
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+
                     boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale(cordova.getActivity(),
                             permission);
-                    if (!showRationale) {
-                        // user denied flagging NEVER ASK AGAIN
-                        denied = true;
-                        authorized = false;
-                    } else {
-                        authorized = false;
-                        denied = false;
-                    }
+
+                    // user denied flagging NEVER ASK AGAIN
+                    denied = !showRationale;
+
                     callbackContext.error(BBScannerError.CAMERA_ACCESS_DENIED);
                     return;
                 } else if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                     authorized = true;
-                    denied = false;
-                    prepare(callbackContext);
-                } else {
-                    authorized = false;
-                    denied = false;
-                    restricted = false;
+                    setupCamera(callbackContext);
                 }
             }
         }
     }
 
     public boolean hasPermission() {
-        return PermissionHelper.hasPermission(this, Manifest.permission.CAMERA );
+        return PermissionHelper.hasPermission(this, Manifest.permission.CAMERA);
     }
 
     private void requestPermission() {
-        PermissionHelper.requestPermissions(this, CAMERA_PERMISSION_REQUEST_CODE, new String[] { Manifest.permission.CAMERA });
+        PermissionHelper.requestPermissions(this, CAMERA_PERMISSION_REQUEST_CODE,
+                new String[] { Manifest.permission.CAMERA });
     }
 
     private void closeCamera() {
@@ -410,35 +371,19 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
         showing = false;
     }
 
-    private boolean hasCamera() {
-        return this.cordova.getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
-    }
-
-    private boolean hasFrontCamera() {
-        return this.cordova.getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT);
-    }
-
     private void setupCamera(CallbackContext callbackContext) {
+
         cordova.getActivity().runOnUiThread(() -> {
             // Create our Preview view and set it as the content of our activity.
             mBarcodeView = new BarcodeView(cordova.getActivity());
 
             // Configure the decoder
-            ArrayList<BarcodeFormat> formatList = new ArrayList<>();
-            formatList.add(BarcodeFormat.QR_CODE);
-            formatList.add(BarcodeFormat.DATA_MATRIX);
-            formatList.add(BarcodeFormat.UPC_A);
-            formatList.add(BarcodeFormat.UPC_E);
-            formatList.add(BarcodeFormat.EAN_8);
-            formatList.add(BarcodeFormat.EAN_13);
-            formatList.add(BarcodeFormat.CODE_39);
-            formatList.add(BarcodeFormat.CODE_93);
-            formatList.add(BarcodeFormat.CODE_128);
-            formatList.add(BarcodeFormat.CODABAR);
-            formatList.add(BarcodeFormat.ITF);
-            formatList.add(BarcodeFormat.RSS_14);
-            formatList.add(BarcodeFormat.PDF_417);
-            formatList.add(BarcodeFormat.RSS_EXPANDED);
+            ArrayList<BarcodeFormat> formatList = new ArrayList<>(
+                    Arrays.asList(BarcodeFormat.QR_CODE, BarcodeFormat.DATA_MATRIX, BarcodeFormat.UPC_A,
+                            BarcodeFormat.UPC_E, BarcodeFormat.EAN_8, BarcodeFormat.EAN_13, BarcodeFormat.CODE_39,
+                            BarcodeFormat.CODE_93, BarcodeFormat.CODE_128, BarcodeFormat.CODABAR, BarcodeFormat.ITF,
+                            BarcodeFormat.RSS_14, BarcodeFormat.PDF_417, BarcodeFormat.RSS_EXPANDED));
+
             mBarcodeView.setDecoderFactory(new DefaultDecoderFactory(formatList));
 
             // Configure the camera (front/back)
@@ -448,18 +393,19 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
 
             FrameLayout.LayoutParams cameraPreviewParams = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+
             ((ViewGroup) webView.getView().getParent()).addView(mBarcodeView, cameraPreviewParams);
 
             cameraPreviewing = true;
             webView.getView().bringToFront();
-
             mBarcodeView.resume();
-        });
-        prepared = true;
-        previewing = true;
-        if (shouldScanAgain)
-            scan(callbackContext);
+            prepared = true;
+            previewing = true;
 
+            if (shouldScanAgain) {
+                scan(callbackContext);
+            }
+        });
     }
 
     @Override
@@ -487,7 +433,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 mBarcodeView.stopDecoding();
                 this.nextScanCallback.sendPluginResult(result);
                 this.scanType = null;
-                stop();
+                destroy(callbackContext);
             }
         } else {
             scan(this.nextScanCallback);
@@ -498,37 +444,34 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
     public void possibleResultPoints(List<ResultPoint> list) {
     }
 
-    // ---- BEGIN EXTERNAL API ----
+    /**
+     * Checks if the device has a camera.
+     * @return True if the device has a camera, false otherwise.
+     */
+    private boolean hasCamera() {
+        return this.cordova.getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY);
+    }
+
+    /**
+     * Prepares the camera for use.
+     * @param callbackContext The callback context to return the results.
+     */
     private void prepare(final CallbackContext callbackContext) {
+        // Check if the camera has been prepared
         if (!prepared) {
-            if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                if (hasCamera()) {
-                    if (!hasPermission()) {
-                        requestPermission();
-                    } else {
-                        setupCamera(callbackContext);
-                        if (!scanning)
-                            getStatus(callbackContext);
-                    }
-                } else {
-                    callbackContext.error(BBScannerError.BACK_CAMERA_UNAVAILABLE);
-                }
-            } else if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                if (hasFrontCamera()) {
-                    if (!hasPermission()) {
-                        requestPermission();
-                    } else {
-                        setupCamera(callbackContext);
-                        if (!scanning)
-                            getStatus(callbackContext);
-                    }
-                } else {
-                    callbackContext.error(BBScannerError.FRONT_CAMERA_UNAVAILABLE);
-                }
-            } else {
-                callbackContext.error(BBScannerError.CAMERA_UNAVAILABLE);
+            // Check if camera is available
+            if (!hasCamera()) {
+                callbackContext.error(BBScannerError.BACK_CAMERA_UNAVAILABLE);
+                return;
             }
+            // Check for permission
+            if (!hasPermission()) {
+                requestPermission();
+                return;
+            }
+
         } else {
+            // Reset the camera state
             prepared = false;
             this.cordova.getActivity().runOnUiThread(() -> mBarcodeView.pause());
             if (cameraPreviewing) {
@@ -536,11 +479,15 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                     ((ViewGroup) mBarcodeView.getParent()).removeView(mBarcodeView);
                     cameraPreviewing = false;
                 });
-
                 previewing = true;
                 lightOn = false;
             }
-            setupCamera(callbackContext);
+        }
+
+        // Setup the camera and start scanning
+        setupCamera(callbackContext);
+        if (!scanning) {
+            //Will return the status to app
             getStatus(callbackContext);
         }
     }
@@ -549,13 +496,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
         scanning = true;
         if (!prepared) {
             shouldScanAgain = true;
-            if (hasCamera()) {
-                if (!hasPermission()) {
-                    requestPermission();
-                } else {
-                    setupCamera(callbackContext);
-                }
-            }
+            prepare(callbackContext);
         } else {
             if (!previewing) {
                 this.cordova.getActivity().runOnUiThread(() -> {
@@ -724,12 +665,11 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 }
             });
         }
-        if (currentCameraId != Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            if (lightOn)
-                switchFlash(false, callbackContext);
+        if (lightOn && currentCameraId != Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            switchFlash(false, callbackContext);
         }
         closeCamera();
-        currentCameraId = 0;
+        currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
         getStatus(callbackContext);
     }
 
@@ -788,5 +728,59 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 }
             }
         });
+    }
+
+    private String boolToNumberString(Boolean bool) {
+        return bool ? "1" : "0";
+    }
+
+    private BarcodeFormat getBarcodeFormatFromString(String format) {
+        BarcodeFormat aFormat = null;
+        switch (format) {
+            case "QR_CODE":
+                aFormat = BarcodeFormat.QR_CODE;
+                break;
+            case "UPC_E":
+                aFormat = BarcodeFormat.UPC_E;
+                break;
+            case "EAN_13":
+                aFormat = BarcodeFormat.EAN_13;
+                break;
+            case "EAN_8":
+                aFormat = BarcodeFormat.EAN_8;
+                break;
+            case "CODE_39":
+                aFormat = BarcodeFormat.CODE_39;
+                break;
+            case "CODE_93":
+                aFormat = BarcodeFormat.CODE_93;
+                break;
+            case "CODE_128":
+                aFormat = BarcodeFormat.CODE_128;
+                break;
+            case "PDF417":
+                aFormat = BarcodeFormat.PDF_417;
+                break;
+            case "ITF":
+                aFormat = BarcodeFormat.ITF;
+                break;
+            case "DATA_MATRIX":
+                aFormat = BarcodeFormat.DATA_MATRIX;
+                break;
+            case "CODABAR":
+                aFormat = BarcodeFormat.CODABAR;
+                break;
+            case "RSS_14":
+                aFormat = BarcodeFormat.RSS_14;
+                break;
+            case "RSS_EXPANDED":
+                aFormat = BarcodeFormat.RSS_EXPANDED;
+                break;
+        }
+        return aFormat;
+    }
+
+    public int getCurrentCameraId() {
+        return this.currentCameraId;
     }
 }
