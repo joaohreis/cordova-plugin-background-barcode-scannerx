@@ -114,6 +114,9 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 case "show":
                     cordova.getThreadPool().execute(() -> show(callbackContext));
                     return true;
+                 case "hide":
+                    cordova.getThreadPool().execute(() -> hide(callbackContext));
+                    return true;
                 case "scan":
                     cordova.getThreadPool().execute(() -> {
                         JSONObject data = (JSONObject) args.opt(0);
@@ -141,14 +144,11 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 case "pausePreview":
                     cordova.getThreadPool().execute(() -> pausePreview(callbackContext));
                     return true;
-                case "useCamera":
-                    cordova.getThreadPool().execute(() -> switchCamera(callbackContext, args));
-                    return true;
                 case "resumePreview":
                     cordova.getThreadPool().execute(() -> resumePreview(callbackContext));
                     return true;
-                case "hide":
-                    cordova.getThreadPool().execute(() -> hide(callbackContext));
+                case "switchCamera":
+                    cordova.getThreadPool().execute(() -> switchCamera(callbackContext, args));
                     return true;
                 case "enableLight":
                     cordova.getThreadPool().execute(this::enableLight);
@@ -331,7 +331,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
 
         // If the camera cannot be changed, return with error message
         if (!canChangeCamera()) {
-            callbackContext.error(BBScannerError.CAMERA_UNAVAILABLE);
+            callbackContext.error(BBScannerError.FRONT_CAMERA_UNAVAILABLE);
             return;
         }
 
@@ -572,7 +572,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 }
             });
             if (cameraPreviewing) {
-                this.cordova.getActivity().runOnUiThread(() -> {
+                runOnUiThread(() -> {
                     removeFromParent(mBarcodeView);
                     cameraPreviewing = false;
                 });
@@ -693,6 +693,7 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
             if (mBarcodeView != null) {
                 mBarcodeView.pause();
                 previewing = false;
+                scanning = false;
                 if (lightOn)
                     lightOn = false;
             }
@@ -710,9 +711,10 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
      */
     private void resumePreview(final CallbackContext callbackContext) {
         runOnUiThread(() -> {
-            if (mBarcodeView != null) {
+            if (mBarcodeView != null && prepared) {
                 mBarcodeView.resume();
                 previewing = true;
+                scanning = true;
             }
 
             if (callbackContext != null)

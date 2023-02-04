@@ -69,14 +69,14 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 
     enum ScannerError: Int32 {
         case unexpected_error = 0,
-        camera_access_denied = 1,
-        camera_access_restricted = 2,
+        camera_access_denied = 1,       
         back_camera_unavailable = 3,
         front_camera_unavailable = 4,
         camera_unavailable = 5,
         scan_canceled = 6,
         light_unavailable = 7,
-        open_settings_unavailable = 8
+        open_settings_unavailable = 8,
+        camera_access_restricted = 9,
     }
 
     enum CaptureError: Error {
@@ -377,7 +377,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     // backCamera is 0, frontCamera is 1
 
     @objc
-    func useCamera(_ command: CDVInvokedUrlCommand){
+    func switchCamera(_ command: CDVInvokedUrlCommand){
         let index = command.arguments[0] as! Int
         if(currentCamera != index){
            // camera change only available if both backCamera and frontCamera exist

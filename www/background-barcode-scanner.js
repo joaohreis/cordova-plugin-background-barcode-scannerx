@@ -75,10 +75,11 @@ function errorCallback(callback) {
 				};
 			break;
 			case 2:
+				// Only for Android 6.0+.
 				ScannerError = {
-					name: 'CAMERA_ACCESS_RESTRICTED',
+					name: 'CAMERA_ACCESS_PERMANENT_DENIED',
 					code: 2,
-					_message: 'Camera access is restricted.'
+					_message: 'Camera access is permanent denied.'
 				};
 			break;
 			case 3:
@@ -124,6 +125,14 @@ function errorCallback(callback) {
 					_message: 'The device is unable to open settings.'
 				};
 			break;
+			case 9:
+				// Only for iOS.
+				ScannerError = {
+					name: 'CAMERA_ACCESS_RESTRICTED',
+					code: 8,
+					_message: 'The camera is restricted.'
+				};
+			break;
 			default:
 				ScannerError = {
 					name: 'UNEXPECTED_ERROR',
@@ -159,12 +168,12 @@ function doneCallback(callback, clear) {
 	};
 }
 
-exports.prepare = function(callback) {
-	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'prepare', []);
+exports.show = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'show', []);
 }
 
-exports.destroy = function(callback) {
-	exec(doneCallback(callback, true), null, 'BBScanner', 'destroy', []);
+exports.hide = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'hide', []);
 }
 
 exports.scan = function(options, callback) {
@@ -181,62 +190,6 @@ exports.scan = function(options, callback) {
 	exec(success, errorCallback(callback), 'BBScanner', 'scan', [options]);
 }
 
-exports.stop = function(callback) {
-	exec(doneCallback(callback), null, 'BBScanner', 'stop', []);
-}
-
-exports.enableLight = function(callback) {
-	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'enableLight', []);
-}
-
-exports.disableLight = function(callback) {
-	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'disableLight', []);
-}
-
-exports.useCamera = function(index, callback) {
-	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'useCamera', [index]);
-}
-
-exports.useFrontCamera = function(callback) {
-	var frontCamera = 1;
-	if (callback) {
-		this.useCamera(frontCamera, callback);
-	} else {
-		exec(null, null, 'BBScanner', 'useCamera', [frontCamera]);
-	}
-}
-
-exports.useBackCamera = function(callback) {
-	var backCamera = 0;
-	if (callback) {
-		this.useCamera(backCamera, callback);
-	} else {
-		exec(null, null, 'BBScanner', 'useCamera', [backCamera]);
-	}
-}
-
-exports.openSettings = function(callback) {
-	if ( callback && typeof callback == 'function') {
-		exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'openSettings', []);
-	}else{
-		exec(null, null, 'BBScanner', 'openSettings', []);
-	}
-}
-
-exports.getStatus = function(callback) {
-	if ( !callback || typeof callback !== 'function') {
-		throw new Error('No callback provided to getStatus method.');
-	}
-	exec(doneCallback(callback), null, 'BBScanner', 'getStatus', []);
-}
-
-exports.snap = function(callback) {
-	if ( !callback || typeof callback !== 'function') {
-		throw new Error('No callback provided to snap method.');
-	}
-	exec(callback, null, 'BBScanner', 'snap', []);
-}
-
 exports.pause = function(callback) {
 	if ( !callback || typeof callback !== 'function') {
 		throw new Error('No callback provided to pause method.');
@@ -249,6 +202,78 @@ exports.resume = function(callback) {
 		throw new Error('No callback provided to resume method.');
 	}
 	exec(callback, null, 'BBScanner', 'resume', []);
+}
+
+exports.snap = function(callback) {
+	if ( !callback || typeof callback !== 'function') {
+		throw new Error('No callback provided to snap method.');
+	}
+	exec(callback, null, 'BBScanner', 'snap', []);
+}
+
+exports.stop = function(callback) {
+	exec(doneCallback(callback), null, 'BBScanner', 'stop', []);
+}
+
+exports.openSettings = function(callback) {
+	if ( callback && typeof callback == 'function') {
+		exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'openSettings', []);
+	}else{
+		exec(null, null, 'BBScanner', 'openSettings', []);
+	}
+}
+
+exports.pausePreview = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'pausePreview', []);
+}
+
+exports.resumePreview = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'resumePreview', []);
+}
+
+exports.switchCamera = function(index, callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'switchCamera', [index]);
+}
+
+exports.enableLight = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'enableLight', []);
+}
+
+exports.disableLight = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'disableLight', []);
+}
+
+exports.useFrontCamera = function(callback) {
+	var frontCamera = 1;
+	if (callback) {
+		this.switchCamera(frontCamera, callback);
+	} else {
+		exec(null, null, 'BBScanner', 'switchCamera', [frontCamera]);
+	}
+}
+
+exports.useBackCamera = function(callback) {
+	var backCamera = 0;
+	if (callback) {
+		this.switchCamera(backCamera, callback);
+	} else {
+		exec(null, null, 'BBScanner', 'switchCamera', [backCamera]);
+	}
+}
+
+exports.prepare = function(callback) {
+	exec(successCallback(callback), errorCallback(callback), 'BBScanner', 'prepare', []);
+}
+
+exports.destroy = function(callback) {
+	exec(doneCallback(callback, true), null, 'BBScanner', 'destroy', []);
+}
+
+exports.getStatus = function(callback) {
+	if ( !callback || typeof callback !== 'function') {
+		throw new Error('No callback provided to getStatus method.');
+	}
+	exec(doneCallback(callback), null, 'BBScanner', 'getStatus', []);
 }
 
 exports.types = {
