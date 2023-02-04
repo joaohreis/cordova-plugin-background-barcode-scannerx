@@ -1,6 +1,8 @@
 # cordova-plugin-multiple-barcode-scan
 
-A fork of the plugin [cordova-plugin-background-barcode-scanner](https://github.com/vash15/cordova-plugin-background-barcode-scanner), followed by a refactoring of the source code to improve its performance and maintainability. To finish, the README file was updated with accurate and detailed information on the use of the plugin after the refactoring. The plugin was refactored with a focus on Android 19 and higher, without androidX support.
+A fork of the plugin [cordova-plugin-background-barcode-scanner](https://github.com/vash15/cordova-plugin-background-barcode-scanner), followed by a refactoring of the source code to improve its performance and maintainability. To finish, the README file was updated with accurate and detailed information on the use of the plugin after the refactoring. 
+
+The plugin was refactored with a focus on Android 19 and higher, supporting androidX and targetSDK 33.
 
 
 This plugin started based on **Bitpay**'s [QRScanner](https://github.com/bitpay/cordova-plugin-qrscanner). I needed to use a barcode scanner under the webview and I modified the original plugin to do this.
