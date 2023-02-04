@@ -1,9 +1,9 @@
 {
-  "name": "cordova-plugin-background-barcode-scannerx",
-  "version": "4.0.0",
+  "name": "cordova-plugin-multiple-barcode-scan",
+  "version": "4.1.0",
   "description": "Fast, energy-efficient, highly-configurable QR code scanner.",
   "cordova": {
-    "id": "cordova-plugin-background-barcode-scannerx",
+    "id": "cordova-plugin-multiple-barcode-scan",
     "platforms": [
       "ios",
       "android"
@@ -26,7 +26,7 @@
   ],
   "author": "Jason Dreyzehner",
   "license": "MIT",
-  "homepage": "https://github.com/Willian199/cordova-plugin-background-barcode-scannerx",
+  "homepage": "https://github.com/Willian199/cordova-plugin-multiple-barcode-scan",
   "main": "www/background-barcode-scanner.js",
   "dependencies": {},
   "devDependencies": {},
