@@ -108,7 +108,7 @@ var done = function(err, status){
   if(err){
     console.error(err._message);
   } else {
-    console.log('QRScanner is initialized. Status:');
+    console.log('BBScanner is initialized. Status:');
     console.log(status);
   }
 };
@@ -133,7 +133,7 @@ var callback = function(err, contents){
 BBScanner.scan({format: cordova.plugins.BBScanner.types.QR_CODE, multipleScan: false}, callback);
 ```
 
-Sets QRScanner to "watch" for valid QR codes. Once a valid code is detected, it's contents are passed to the callback, and scanning is toggled off. If `BBScanner.prepare()` has not been called, this method performs that setup as well. On platforms other than iOS and Android, the video preview must be visible for scanning to function.
+Sets BBScanner to "watch" for valid QR codes. Once a valid code is detected, it's contents are passed to the callback, and scanning is toggled off. If `BBScanner.prepare()` has not been called, this method performs that setup as well. On platforms other than iOS and Android, the video preview must be visible for scanning to function.
 
 With the `multipleScan` option is it possibile to retrieve more than one barcode per scan calls, the preview is not stopped. Be aware of the sequential scans, combine it with `pause` and `resume` for the best user experience.
 If false, will retrive the barcode and call [`destroy`](#destroy) internally.
@@ -195,7 +195,7 @@ BBScanner.disableLight(function(err, status){
 Disable the device's light. If `BBScanner.prepare()` has not been called, this method will throw `CAMERA_ACCESS_DENIED`.
 
 ### Switch Camera
-QRScanner defaults to the back camera, but can be reversed. If `BBScanner.prepare()` has not been called, this method will throw `CAMERA_ACCESS_DENIED`.
+BBScanner defaults to the back camera, but can be reversed. If `BBScanner.prepare()` has not been called, this method will throw `CAMERA_ACCESS_DENIED`.
 
 If the front camera is unavailable, this method will throw `FRONT_CAMERA_UNAVAILABLE`.
 
@@ -282,7 +282,7 @@ Open the app-specific permission settings in the user's device settings. Here th
 
 Note: iOS immediately kills all apps affected by permission changes in Settings. If the user changes a permission setting, your app will stop and only restart when they return.
 
-### Get QRScanner Status
+### Get BBScanner Status
 
 ```js
 BBScanner.getStatus(function(status){
@@ -306,7 +306,7 @@ BBScanner.getStatus(function(status){
 }
 ```
 
-Retrieve the status of QRScanner and provide it to the callback function.
+Retrieve the status of BBScanner and provide it to the callback function.
 
 ### Status Object Properties
 
@@ -337,7 +337,7 @@ BBScanner.destroy(function(status){
 Runs [`hide`](#hide), [`stop`](#stop), stops video capture, removes the video preview, disable flash and deallocates as much as possible. Basically reverts the plugin to it's startup-state.
 
 ## Error Handling
-Many BBScanner functions accept a callback with an `error` parameter. When QRScanner experiences errors, this parameter contains a QRScannerError object with properties `name` (_String_), `code` (_Number_), and `_message` (_String_). When handling errors, rely only on the `name` or `code` parameter, as the specific content of `_message` is not considered part of the plugin's stable API. Particularly if your app is localized, it's also a good idea to provide your own `message` when informing the user of errors.
+Many BBScanner functions accept a callback with an `error` parameter. When BBScanner experiences errors, this parameter contains a QRScannerError object with properties `name` (_String_), `code` (_Number_), and `_message` (_String_). When handling errors, rely only on the `name` or `code` parameter, as the specific content of `_message` is not considered part of the plugin's stable API. Particularly if your app is localized, it's also a good idea to provide your own `message` when informing the user of errors.
 
 ```js
 BBScanner.scan(function(err, contents){
@@ -361,7 +361,7 @@ Code | Name                        | Description
    2 | `CAMERA_ACCESS_PERMANENT_DENIED`  | The user permanent denied camera access. Only for android 6.0+.
    3 | `BACK_CAMERA_UNAVAILABLE`   | The back camera is unavailable.
    4 | `FRONT_CAMERA_UNAVAILABLE`  | The front camera is unavailable.
-   5 | `CAMERA_UNAVAILABLE`        | The camera is unavailable because it doesn't exist or is otherwise unable to be configured. (Also returned if QRScanner cannot return one of the more specific `BACK_CAMERA_UNAVAILABLE` or `FRONT_CAMERA_UNAVAILABLE` errors.)
+   5 | `CAMERA_UNAVAILABLE`        | The camera is unavailable because it doesn't exist or is otherwise unable to be configured. (Also returned if BBScanner cannot return one of the more specific `BACK_CAMERA_UNAVAILABLE` or `FRONT_CAMERA_UNAVAILABLE` errors.)
    6 | `SCAN_CANCELED`             | Scan was canceled by the `cancelScan()` method. (Returned exclusively to the `BBScanner.scan()` method.)
    7 | `LIGHT_UNAVAILABLE`         | The device light is unavailable because it doesn't exist or is otherwise unable to be configured.
    8 | `OPEN_SETTINGS_UNAVAILABLE` | The device is unable to open settings.
