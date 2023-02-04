@@ -2,13 +2,13 @@
 
 A fork of the plugin [cordova-plugin-background-barcode-scanner](https://github.com/vash15/cordova-plugin-background-barcode-scanner), followed by a refactoring of the source code to improve its performance and maintainability. To finish, the README file was updated with accurate and detailed information on the use of the plugin after the refactoring. 
 
-The plugin was refactored with a focus on Android 19 and higher, supporting androidX and targetSDK 33.
+The plugin was refactored with a focus on Android api 19 and higher, supporting androidX and targetSDK 33.
 
 
 This plugin started based on **Bitpay**'s [QRScanner](https://github.com/bitpay/cordova-plugin-qrscanner). I needed to use a barcode scanner under the webview and I modified the original plugin to do this.
 
 
-A fast, energy efficient, highly-configurable QR code scanner for Cordova apps – available for the iOS, Android, Windows, and browser platforms.
+A fast, energy efficient, highly-configurable QR code scanner for Cordova apps – available for the iOS and Android api 19+.
 
 BBScanner's native camera preview is rendered behind the Cordova app's webview, and BBScanner provides `show` and `hide` methods to toggle the transparency of the webview's background. This allows for a completely HTML/CSS/JS interface to be built inside the webview to control the scanner.
 
