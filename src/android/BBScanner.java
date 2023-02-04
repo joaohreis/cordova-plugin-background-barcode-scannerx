@@ -10,7 +10,6 @@ import android.graphics.Rect;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.provider.Settings;
-import android.support.v4.app.ActivityCompat;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -384,21 +383,28 @@ public class BBScanner extends CordovaPlugin implements BarcodeCallback {
                 authorized = false;
                 denied = false;
                 restricted = false;
-                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {                
 
-                    //If false the user has pressed NEVER ASK AGAIN
-                    boolean showRationale = ActivityCompat.shouldShowRequestPermissionRationale(cordova.getActivity(),
-                            permission);
+                    /**
+                        In this case, the check is made by checking the version of the Android API that is being run. If the API is greater than or equal to 23 (Android 6.0 Marshmallow), the [shouldShowRequestPermissionRationale] method can be called directly on the Activity. Otherwise, the method will always return false.
 
-                    // user denied flagging NEVER ASK AGAIN
-                    denied = !showRationale;
+                        For versions prior to Android 6.0 Marshmallow, permissions are granted during application installation and cannot be managed at runtime. Therefore, there is no need to check if a permission has been denied by the user or display a rationale for the permission. In versions prior to Android 6.0, the code to check the need to display a rationale does not need to be included in the application.
+                     */
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-                    if(denied){
-                        callbackContext.error(BBScannerError.CAMERA_ACCESS_PERMANENT_DENIED);
-                    }else {
-                        callbackContext.error(BBScannerError.CAMERA_ACCESS_DENIED);
+                        //If false the user has pressed NEVER ASK AGAIN
+                        boolean showRationale = this.cordova.getActivity().shouldShowRequestPermissionRationale(permission);
+
+
+                        // user denied flagging NEVER ASK AGAIN
+                        denied = !showRationale;
+
+                        if(denied){
+                            callbackContext.error(BBScannerError.CAMERA_ACCESS_PERMANENT_DENIED);
+                        }else {
+                            callbackContext.error(BBScannerError.CAMERA_ACCESS_DENIED);
+                        }
                     }
-
                     return;
                 } else if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                     authorized = true;
