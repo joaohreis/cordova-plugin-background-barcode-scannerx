@@ -76,7 +76,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         scan_canceled = 6,
         light_unavailable = 7,
         open_settings_unavailable = 8,
-        camera_access_restricted = 9,
+        camera_access_restricted = 9
     }
 
     enum CaptureError: Error {
@@ -302,13 +302,17 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
     }
-    @objc
-    func clearBackgrounds(subviews: [UIView]){
-        for subview in subviews{
-            subview.backgroundColor = UIColor.clear
+
+    /// Helper method to clear background of subviews
+    private func clearBackgrounds(subviews: [UIView]?) {
+        subviews?.forEach { subview in
+            subview.isOpaque = false
+            subview.backgroundColor = .clear
+            subview.scrollView.backgroundColor = .clear
             clearBackgrounds(subviews: subview.subviews)
         }
     }
+    
     @objc
     func scan(_ command: CDVInvokedUrlCommand){
         if self.prepScanner(command: command) {
@@ -366,10 +370,11 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.prepScanner(command: command) {
             let image = UIImage(cgImage: self.capture.lastScannedImage)
             let resizedImage = image.resizeImage(640, opaque: true)
-            let data = resizedImage.pngData()
-            let base64 = data?.base64EncodedString()
-            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
-            commandDelegate!.send(pluginResult, callbackId:command.callbackId)
+            if let data = UIImagePNGRepresentation(resizedImage) {
+                let base64 = data.base64EncodedString()
+                let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
+                commandDelegate!.send(pluginResult, callbackId:command.callbackId)
+            }
         }
     }
 
@@ -496,7 +501,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     // Open native settings
     @objc
     func openSettings(_ command: CDVInvokedUrlCommand) {
-        guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
+        guard let settingsUrl = URL(string: UIApplicationOpenSettingsURLString) else {
                 return
             }
             if UIApplication.shared.canOpenURL(settingsUrl) {

@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-multiple-barcode-scan",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Fast, energy-efficient, highly-configurable QR code scanner.",
   "cordova": {
     "id": "cordova-plugin-multiple-barcode-scan",
