@@ -21,11 +21,13 @@
         <param name="android-package" value="info.belluco.cordova.bbscanner.BBScanner"/>
       </feature>
     </config-file>
+	<!--
     <config-file target="AndroidManifest.xml" parent="/*">
       <uses-permission android:name="android.permission.CAMERA" android:required="false" />
       <uses-feature android:name="android.hardware.camera" android:required="false" />
       <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     </config-file>
+	-->
     <source-file src="src/android/BBScanner.java" target-dir="src/info/belluco/cordova/bbscanner"/>
     <framework src="src/android/bbscanner.gradle" custom="true" type="gradleReference"/>
   </platform>

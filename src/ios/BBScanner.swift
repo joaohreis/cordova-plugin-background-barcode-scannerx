@@ -372,10 +372,10 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             let resizedImage = image.resizeImage(640, opaque: true)
             if let data = UIImagePNGRepresentation(resizedImage) {
                 let base64 = data.base64EncodedString()
-                let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
-                commandDelegate!.send(pluginResult, callbackId:command.callbackId)
-            }
+            let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
+            commandDelegate!.send(pluginResult, callbackId:command.callbackId)
         }
+    }
     }
 
 
@@ -473,7 +473,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
 
-        let canOpenSettings = "1"
+        let canOpenSettings = "0"
         let previewing = "0"
 
         let canChangeCamera =  (backCamera != -1 && frontCamera != -1)
@@ -484,7 +484,6 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             "restricted": boolToNumberString(bool: restricted),
             "prepared": boolToNumberString(bool: prepared),
             "scanning": boolToNumberString(bool: self.scanning),
-            "previewing": previewing,
             "showing": boolToNumberString(bool: showing),
             "lightEnabled": boolToNumberString(bool: lightEnabled),
             "canOpenSettings": canOpenSettings,
@@ -511,7 +510,6 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             } else {
                 self.sendErrorCode(command: command, error: ScannerError.open_settings_unavailable)
             }
-        
     }
 }
 
