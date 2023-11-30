@@ -505,6 +505,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             } else {
                 self.sendErrorCode(command: command, error: ScannerError.open_settings_unavailable)
             }
+		/*
     }
 }
 
