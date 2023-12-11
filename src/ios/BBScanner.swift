@@ -69,14 +69,14 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 
     enum ScannerError: Int32 {
         case unexpected_error = 0,
-        camera_access_denied = 1,       
+        camera_access_denied = 1,
+        camera_access_restricted = 2,
         back_camera_unavailable = 3,
         front_camera_unavailable = 4,
         camera_unavailable = 5,
         scan_canceled = 6,
         light_unavailable = 7,
-        open_settings_unavailable = 8,
-        camera_access_restricted = 9
+        open_settings_unavailable = 8
     }
 
     enum CaptureError: Error {
@@ -97,7 +97,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
 
     func initSubView() {
         if self.cameraView == nil {
-            self.cameraView = CameraView(frame: CGRect(x: self.webView.frame.origin.x, y: self.webView.frame.origin.y, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+			self.cameraView = CameraView(frame: CGRect(x: self.webView.frame.origin.x, y: self.webView.frame.origin.y, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
             self.cameraView.autoresizingMask = [.flexibleWidth, .flexibleHeight];
         }
     }
@@ -302,17 +302,13 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
             }
         }
     }
-
-    /// Helper method to clear background of subviews
-    private func clearBackgrounds(subviews: [UIView]?) {
-        subviews?.forEach { subview in
-            subview.isOpaque = false
-            subview.backgroundColor = .clear
-            subview.scrollView.backgroundColor = .clear
+    @objc
+    func clearBackgrounds(subviews: [UIView]){
+        for subview in subviews{
+            subview.backgroundColor = UIColor.clear
             clearBackgrounds(subviews: subview.subviews)
         }
     }
-    
     @objc
     func scan(_ command: CDVInvokedUrlCommand){
         if self.prepScanner(command: command) {
@@ -370,19 +366,18 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
         if self.prepScanner(command: command) {
             let image = UIImage(cgImage: self.capture.lastScannedImage)
             let resizedImage = image.resizeImage(640, opaque: true)
-            if let data = UIImagePNGRepresentation(resizedImage) {
-                let base64 = data.base64EncodedString()
+            let data = UIImagePNGRepresentation(resizedImage)
+            let base64 = data?.base64EncodedString()
             let pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: base64)
             commandDelegate!.send(pluginResult, callbackId:command.callbackId)
         }
-    }
     }
 
 
     // backCamera is 0, frontCamera is 1
 
     @objc
-    func switchCamera(_ command: CDVInvokedUrlCommand){
+    func useCamera(_ command: CDVInvokedUrlCommand){
         let index = command.arguments[0] as! Int
         if(currentCamera != index){
            // camera change only available if both backCamera and frontCamera exist
@@ -500,7 +495,7 @@ class BBScanner : CDVPlugin, ZXCaptureDelegate {
     // Open native settings
     @objc
     func openSettings(_ command: CDVInvokedUrlCommand) {
-        /*guard let settingsUrl = URL(string: UIApplicationOpenSettingsURLString) else {
+        /*guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
                 return
             }
             if UIApplication.shared.canOpenURL(settingsUrl) {
